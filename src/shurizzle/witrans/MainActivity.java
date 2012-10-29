@@ -3,9 +3,11 @@ package shurizzle.witrans;
 import android.app.Activity;
 import android.os.Bundle;
 import android.widget.TextView;
+import android.content.Intent;
 
 import shurizzle.witrans.net.Network;
 import shurizzle.witrans.net.ArpParser;
+import shurizzle.witrans.net.NetworkMonitor;
 
 import java.net.NetworkInterface;
 import java.net.InetAddress;
@@ -21,6 +23,9 @@ public class MainActivity extends Activity
     setContentView(R.layout.main);
 
     text = (TextView) findViewById(R.id.text);
+
+    if (!NetworkMonitor.isInstanceCreated())
+      startService(new Intent(this, NetworkMonitor.class));
 
     Network nw = new Network(getApplicationContext());
 
