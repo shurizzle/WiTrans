@@ -16,6 +16,16 @@ public abstract class Subnet implements Iterable<InetAddress>
   abstract public short getPrefix();
   abstract public InetAddress getBroadcast();
 
+  @Override
+  public boolean equals(Object s)
+  {
+    if (s instanceof Subnet) {
+      Subnet sub = (Subnet) s;
+      return toString().equals(sub.toString());
+    }
+    return false;
+  }
+
   public static boolean isIPv4(String addr)
   {
     return ipv4Pattern.matcher(addr).matches();
