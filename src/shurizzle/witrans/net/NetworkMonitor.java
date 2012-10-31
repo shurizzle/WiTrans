@@ -24,11 +24,42 @@ public class NetworkMonitor extends Service
     @Override
     public void onReceive(Context context, Intent intent)
     {
-      Toast.makeText(NetworkMonitor.this, "Connectivity Changed", Toast.LENGTH_SHORT).show();
+      String action = intent.getAction();
+      String ifname = (String) intent.getExtras().get("interface");
+      if (action.equals("shurizzle.witrans.net.INTERFACE_UP")) {
+        Toast.makeText(NetworkMonitor.this, ifname + " connected", Toast.LENGTH_SHORT).show();
+      } else if (action.equals("shurizzle.witrans.net.INTERFACE_UPDATE")) {
+        Toast.makeText(NetworkMonitor.this, ifname + " updated", Toast.LENGTH_SHORT).show();
+      } else if (action.equals("shurizzle.witrans.net.INTERFACE_DOWN")) {
+        Toast.makeText(NetworkMonitor.this, ifname + " disconnected", Toast.LENGTH_SHORT).show();
+      }
     }
   };
 
   Network network;
+
+  private class ArpReaderThread extends Thread
+  {
+    private boolean mStopped = false;
+
+    @Override
+    public void run()
+    {
+      mStopped = false;
+    }
+
+    public synchronized void exit()
+    {
+      mStopped = true;
+
+      String iface = network.getInterface().getDisplayName();
+    }
+
+    public synchronized boolean isExiting()
+    {
+      return mStopped;
+    }
+  }
 
   @Override
   public IBinder onBind(Intent intent)
@@ -63,9 +94,13 @@ public class NetworkMonitor extends Service
   public void onStart(Intent intent, int startId)
   {
     super.onStart(intent, startId);
+    IntentFilter filter = new IntentFilter();
+    filter.addAction("shurizzle.witrans.net.INTERFACE_UP");
+    filter.addAction("shurizzle.witrans.net.INTERFACE_UPDATE");
+    filter.addAction("shurizzle.witrans.net.INTERFACE_DOWN");
 
-    registerReceiver(mConnReceiver,
-        new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
+    registerReceiver(mConnReceiver, filter);
+        //new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
 
     Toast.makeText(this, "Service Started", Toast.LENGTH_LONG).show();
   }

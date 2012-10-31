@@ -8,6 +8,7 @@ import android.content.Intent;
 import shurizzle.witrans.net.Network;
 import shurizzle.witrans.net.ArpParser;
 import shurizzle.witrans.net.NetworkMonitor;
+import shurizzle.witrans.net.InterfacesMonitor;
 import shurizzle.witrans.net.subnet.IPv4Subnet;
 
 import java.net.NetworkInterface;
@@ -27,6 +28,8 @@ public class MainActivity extends Activity
 
     if (!NetworkMonitor.isInstanceCreated())
       startService(new Intent(this, NetworkMonitor.class));
+    if (!InterfacesMonitor.isInstanceCreated())
+      startService(new Intent(this, InterfacesMonitor.class));
 
     Network nw = new Network(getApplicationContext());
 
