@@ -33,18 +33,28 @@ public class Network
 
     wifi = (WifiManager) ctx.getSystemService(Context.WIFI_SERVICE);
 
-    Class[] paramTypes = new Class[0];
-    try {
-      IS_WIFI_AP_ENABLED = wifi.getClass().getMethod("isWifiApEnabled", paramTypes);
-    } catch (Exception e) {}
+    if (hasWiFi()) {
+      Class[] paramTypes = new Class[0];
+      try {
+        IS_WIFI_AP_ENABLED = wifi.getClass().getMethod("isWifiApEnabled", paramTypes);
+      } catch (Exception e) {}
 
-    try {
-      GET_WIFI_AP_CONFIGURATION = wifi.getClass().getMethod("getWifiApConfiguration", paramTypes);
-    } catch (Exception e) {}
+      try {
+        GET_WIFI_AP_CONFIGURATION = wifi.getClass().getMethod("getWifiApConfiguration", paramTypes);
+      } catch (Exception e) {}
+    }
+  }
+
+  public boolean hasWiFi()
+  {
+    return wifi != null;
   }
 
   public boolean isApConnected()
   {
+    if (!hasWiFi())
+      return false;
+
     boolean iwae = false;
 
     try {
@@ -57,6 +67,8 @@ public class Network
 
   public boolean isWiFiConnected()
   {
+    if (!hasWiFi())
+      return false;
     return ((ConnectivityManager) ctx.getSystemService(Context.CONNECTIVITY_SERVICE)).getNetworkInfo(ConnectivityManager.TYPE_WIFI).isConnected();
   }
 
@@ -67,6 +79,9 @@ public class Network
 
   public WifiConfiguration getApConfiguration()
   {
+    if (!hasWiFi())
+      return null;
+
     WifiConfiguration conf = null;
 
     try {
@@ -79,6 +94,9 @@ public class Network
 
   public NetworkInterface getWiFiInterface()
   {
+    if (!hasWiFi())
+      return null;
+
     String ifname = SystemProperty.get("wifi.interface", null);
 
     try {
@@ -90,6 +108,9 @@ public class Network
 
   public NetworkInterface getApInterface()
   {
+    if (!hasWiFi())
+      return null;
+
     String ifname = SystemProperty.get("wifi.tethering.interface", null);
 
     try {
@@ -110,35 +131,131 @@ public class Network
     }
   }
 
-  public InterfaceAddress getInterfaceAddress()
+  public InterfaceAddress getInterfaceAddress(String ifname)
   {
-    NetworkInterface iface = getInterface();
+    try {
+      return getInterfaceAddress(NetworkInterface.getByName(ifname));
+    } catch (Exception e) {
+      return null;
+    }
+  }
+
+  public InterfaceAddress getInterfaceAddress(NetworkInterface iface)
+  {
     if (iface == null)
       return null;
 
     return Helpers.getInterfaceAddress(iface);
   }
 
-  public InetAddress getAddress()
+  public InterfaceAddress getInterfaceAddress()
   {
-    InterfaceAddress ifAddr = getInterfaceAddress();
-    if (ifAddr == null)
+    return getInterfaceAddress(getInterface());
+  }
+
+  public InterfaceAddress getApInterfaceAddress()
+  {
+    return getInterfaceAddress(getApInterface());
+  }
+
+  public InterfaceAddress getWiFiInterfaceAddress()
+  {
+    return getInterfaceAddress(getWiFiInterface());
+  }
+
+  public InetAddress getAddress(String ifname)
+  {
+    return getAddress(getInterfaceAddress(ifname));
+  }
+
+  public InetAddress getAddress(NetworkInterface iface)
+  {
+    return getAddress(getInterfaceAddress(iface));
+  }
+
+  public InetAddress getAddress(InterfaceAddress ifaddr)
+  {
+    if (ifaddr == null)
       return null;
 
-    return ifAddr.getAddress();
+    return ifaddr.getAddress();
+  }
+
+  public InetAddress getAddress()
+  {
+    return getAddress(getInterfaceAddress());
+  }
+
+  public InetAddress getApAddress()
+  {
+    return getAddress(getApInterface());
+  }
+
+  public InetAddress getWiFiAddress()
+  {
+    return getAddress(getWiFiInterface());
+  }
+
+  public short getNetmask(String ifname)
+  {
+    return getNetmask(getInterfaceAddress(ifname));
+  }
+
+  public short getNetmask(NetworkInterface iface)
+  {
+    return getNetmask(getInterfaceAddress(iface));
+  }
+
+  public short getNetmask(InterfaceAddress ifaddr)
+  {
+    if (ifaddr == null)
+      return -1;
+
+    return ifaddr.getNetworkPrefixLength();
   }
 
   public short getNetmask()
   {
-    InterfaceAddress ifAddr = getInterfaceAddress();
-    if (ifAddr == null)
-      return -1;
+    return getNetmask(getInterfaceAddress());
+  }
 
-    return ifAddr.getNetworkPrefixLength();
+  public short getApNetmask()
+  {
+    return getNetmask(getApInterface());
+  }
+
+  public short getWiFiNetmask()
+  {
+    return getNetmask(getWiFiInterface());
+  }
+
+  public Subnet getSubnet(String ifname)
+  {
+    return getSubnet(getInterfaceAddress(ifname));
+  }
+
+  public Subnet getSubnet(NetworkInterface iface)
+  {
+    return getSubnet(getInterfaceAddress(iface));
+  }
+
+  public Subnet getSubnet(InterfaceAddress ifaddr)
+  {
+    return Subnet.fromInetAddress(getAddress(ifaddr), getNetmask(ifaddr));
   }
 
   public Subnet getSubnet()
   {
-    return Subnet.fromInetAddress(getAddress(), getNetmask());
+    return getSubnet(getInterfaceAddress());
+  }
+
+  public Subnet getApSubnet()
+  {
+    return getSubnet(getApInterface());
+  }
+
+  public Subnet getWiFiSubnet()
+  {
+    return getSubnet(getWiFiInterface());
   }
 }
