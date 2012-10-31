@@ -8,6 +8,7 @@ import android.content.Intent;
 import shurizzle.witrans.net.Network;
 import shurizzle.witrans.net.ArpParser;
 import shurizzle.witrans.net.NetworkMonitor;
+import shurizzle.witrans.net.subnet.IPv4Subnet;
 
 import java.net.NetworkInterface;
 import java.net.InetAddress;
@@ -32,9 +33,9 @@ public class MainActivity extends Activity
     text.setText("");
 
     if (nw.isConnected()) {
-      text.setText((nw.isApConnected() ? "AP: " : "WIFI: ") + nw.getSubnet());
+      text.append((nw.isApConnected() ? "AP: " : "WIFI: ") + nw.getSubnet());
     } else {
-      text.setText("DISCONNECTED");
+      text.append("DISCONNECTED");
     }
     text.append("\n");
 
